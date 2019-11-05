@@ -18,8 +18,9 @@ import os
 
 import dill
 import kfserving
-from alibiexplainer import AlibiExplainer
+from alibiexplainer import AlibiExplainer, Protocol
 from alibiexplainer.explainer import ExplainerMethod  # pylint:disable=no-name-in-module
+from enum import Enum
 
 logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 
@@ -28,6 +29,7 @@ EXPLAINER_FILENAME = "explainer.dill"
 CONFIG_ENV = "ALIBI_CONFIGURATION"
 
 ENV_STORAGE_URI = "STORAGE_URI"
+
 
 
 class GroupedAction(argparse.Action): # pylint:disable=too-few-public-methods
@@ -55,6 +57,13 @@ parser.add_argument('--model_name', default=DEFAULT_EXPLAINER_NAME,
 parser.add_argument('--predictor_host', help='The host for the predictor', required=True)
 parser.add_argument('--storage_uri', help='The URI of a pretrained explainer',
                     default=os.environ.get(ENV_STORAGE_URI))
+
+# Additions for Seldon
+parser.add_argument('--protocol', default=str(Protocol.seldon_grpc),  choices=[str(p) for p in Protocol],
+                    help='Whether to use grpc to call predictor')
+parser.add_argument('--tf_data_type',
+                    help='Tensorflow payload datatype - only with seldon.grpc')
+
 subparsers = parser.add_subparsers(help='sub-command help', dest='command')
 
 # Anchor Tabular Arguments
@@ -129,6 +138,8 @@ if __name__ == "__main__":
                                args.predictor_host,
                                ExplainerMethod(args.command),
                                extra,
-                               alibi_model)
+                               alibi_model,
+                               Protocol(args.protocol),
+                               args.tf_data_type)
     explainer.load()
     kfserving.KFServer().start(models=[explainer])

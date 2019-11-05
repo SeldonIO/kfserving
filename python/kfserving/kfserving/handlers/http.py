@@ -29,17 +29,6 @@ class HTTPHandler(tornado.web.RequestHandler):
                 reason="Unrecognized request format: %s" % e
             )
 
-        if "instances" not in body:
-            raise tornado.web.HTTPError(
-                status_code=HTTPStatus.BAD_REQUEST,
-                reason="Expected key \"instances\" in request body"
-            )
-
-        if not isinstance(body["instances"], list):
-            raise tornado.web.HTTPError(
-                status_code=HTTPStatus.BAD_REQUEST,
-                reason="Expected \"instances\" to be a list"
-            )
         return body
 
 
@@ -54,7 +43,9 @@ class PredictHandler(HTTPHandler):
 
 
 class ExplainHandler(HTTPHandler):
-    def post(self, name: str):
+    def post(self, name: str = None):
+        if name is None:
+            name = next(iter(self.models))
         model = self.get_model(name)
         request = self.validate(self.request)
         request = model.preprocess(request)
