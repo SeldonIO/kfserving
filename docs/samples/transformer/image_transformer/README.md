@@ -5,20 +5,21 @@ Most of the model servers expect tensors as input data, so a pre-processing step
 ## Setup
 1. Your ~/.kube/config should point to a cluster with [KFServing installed](https://github.com/kubeflow/kfserving/blob/master/docs/DEVELOPER_GUIDE.md#deploy-kfserving).
 2. Your cluster's Istio Ingress gateway must be network accessible.
-3. Your cluster's Istio Egresss gateway must [allow Google Cloud Storage](https://knative.dev/docs/serving/outbound-network-access/)
 
 ##  Build Transformer image
 
-### Extend Transformer and implement pre/post processing functions
+### Extend KFModel and implement pre/post processing functions
 ```python
+import kfserving
 from typing import List, Dict
-from kfserving.transformer import Transformer
 from PIL import Image
 import torchvision.transforms as transforms
 import logging
 import io
 import numpy as np
 import base64
+
+logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 
 transform = transforms.Compose(
         [transforms.ToTensor(),
@@ -35,7 +36,10 @@ def image_transform(instance):
     return res.tolist()
 
 
-class ImageTransformer(Transformer):
+class ImageTransformer(kfserving.KFModel):
+    def __init__(self, name: str, predictor_host: str):
+        super().__init__(name)
+        self.predictor_host = predictor_host
 
     def preprocess(self, inputs: Dict) -> Dict:
         return {'instances': [image_transform(instance) for instance in inputs['instances']]}
@@ -47,7 +51,7 @@ class ImageTransformer(Transformer):
 ### Build Transformer docker image
 This step can be part of your CI/CD pipeline to continuously build the transformer image version. 
 ```shell
-docker build -t yuzisun/image-transformer:latest -f transformer.Dockerfile .
+docker build -t gcr.io/kubeflow-ci/kfserving/image-transformer:latest -f transformer.Dockerfile .
 ```
 
 ## Create the InferenceService
@@ -65,10 +69,13 @@ $ inferenceservice.serving.kubeflow.org/transformer-cifar10 created
 
 ## Run a prediction
 
+Use `kfserving-ingressgateway` as your `INGRESS_GATEWAY` if you are deploying KFServing as part of Kubeflow install, and not independently.
+
 ```
 MODEL_NAME=transformer-cifar10
 INPUT_PATH=@./input.json
-CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+INGRESS_GATEWAY=istio-ingressgateway
+CLUSTER_IP=$(kubectl -n istio-system get service $INGRESS_GATEWAY -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 SERVICE_HOSTNAME=$(kubectl get inferenceservice transformer-cifar10 -o jsonpath='{.status.url}' | cut -d "/" -f 3)
 

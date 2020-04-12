@@ -2,6 +2,8 @@
 
 This example uses a [movie sentiment dataset](http://www.cs.cornell.edu/people/pabo/movie-review-data/).
 
+For a more visual rethrough please try the [Jupyter notebook](movie_review_explanations.ipynb).
+
 We can create a InferenceService with a trained sklearn predictor for this dataset and an associated explainer. The black box explainer algorithm we will use is the Text version of Anchors from the [Alibi open source library](https://github.com/SeldonIO/alibi). More details on this algorithm and configuration settings that can be set can be found in the [Seldon Alibi documentation](https://docs.seldon.io/projects/alibi/en/stable/).
 
 The InferenceService is shown below:
@@ -14,17 +16,26 @@ metadata:
 spec:
   default:
     predictor:
+      minReplicas: 1
       sklearn:
         storageUri: "gs://seldon-models/sklearn/moviesentiment"
         resources:
           requests:
             cpu: 0.1
+            memory: 1Gi                        
+          limits:
+            cpu: 1
+            memory: 1Gi                        
     explainer:
+      minReplicas: 1
       alibi:
         type: AnchorText
         resources:
           requests:
             cpu: 0.1
+            memory: 6Gi            
+          limits:
+            memory: 6Gi
         
 ```
 
@@ -34,11 +45,12 @@ Create this InferenceService:
 kubectl create -f moviesentiment.yaml
 ```
 
-Set up some environment variables for the model name and cluster entrypoint:
+Set up some environment variables for the model name and cluster entrypoint. Use `kfserving-ingressgateway` as your `INGRESS_GATEWAY` if you are deploying KFServing as part of Kubeflow install, and not independently.
 
 ```
 MODEL_NAME=moviesentiment
-CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+INGRESS_GATEWAY=istio-ingressgateway
+CLUSTER_IP=$(kubectl -n istio-system get service $INGRESS_GATEWAY -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
 Test the predictor on an example sentence:

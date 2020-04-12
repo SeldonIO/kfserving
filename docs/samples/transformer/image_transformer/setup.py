@@ -31,7 +31,7 @@ setup(
     python_requires='>=3.6',
     packages=find_packages("transformer"),
     install_requires=[
-        "kfserving>=0.2.0",
+        "kfserving>=0.2.1",
         "argparse>=1.4.0",
         "requests>=2.22.0",
         "joblib>=0.13.2",
@@ -39,6 +39,7 @@ setup(
         "numpy>=1.16.3",
         "kubernetes >= 9.0.0",
         "torchvision>=0.4.0",
+        "pillow==6.2.0"
     ],
     tests_require=tests_require,
     extras_require={'test': tests_require}
