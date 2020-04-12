@@ -9,4 +9,7 @@ RUN git clone https://github.com/SeldonIO/alibi.git && \
     cd alibi && \
     pip install .
 RUN pip install -e ./alibiexplainer
+
+RUN chmod -R a+rwx /usr/local/lib/python3.7
+
 ENTRYPOINT ["python", "-m", "alibiexplainer"]

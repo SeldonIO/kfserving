@@ -1,4 +1,4 @@
-TAG=0.1.1
+TAG=1.1.0
 IMAGE=docker.io/seldonio/alibiexplainer
 
 docker-build-seldon-alibi:
