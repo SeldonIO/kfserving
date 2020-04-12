@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Callable, List, Dict
+from typing import Callable, List, Optional, Dict
 
 import alibi
 import kfserving
@@ -24,7 +24,7 @@ logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 
 class AnchorImages(ExplainerWrapper):
 
-    def __init__(self, predict_fn: Callable, explainer: alibi.explainers.AnchorImage, **kwargs):
+    def __init__(self, predict_fn: Callable, explainer: Optional[alibi.explainers.AnchorImage], **kwargs):
         self.predict_fn = predict_fn
         self.anchors_image = explainer
         self.kwargs = kwargs

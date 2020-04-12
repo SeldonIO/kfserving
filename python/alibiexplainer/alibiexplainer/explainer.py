@@ -21,6 +21,7 @@ import numpy as np
 from alibiexplainer.anchor_images import AnchorImages
 from alibiexplainer.anchor_tabular import AnchorTabular
 from alibiexplainer.anchor_text import AnchorText
+from alibiexplainer.explainer_wrapper import ExplainerWrapper
 from kfserving.utils import NumpyEncoder
 from alibiexplainer.proto import prediction_pb2
 from alibiexplainer.proto import prediction_pb2_grpc
@@ -69,7 +70,7 @@ class AlibiExplainer(kfserving.KFModel):
         logging.info("Protocol is %s",str(self.protocol))
 
         if self.method is ExplainerMethod.anchor_tabular:
-            self.wrapper = AnchorTabular(self._predict_fn, explainer, **config)
+            self.wrapper:ExplainerWrapper = AnchorTabular(self._predict_fn, explainer, **config)
         elif self.method is ExplainerMethod.anchor_images:
             self.wrapper = AnchorImages(self._predict_fn, explainer, **config)
         elif self.method is ExplainerMethod.anchor_text:

@@ -63,6 +63,8 @@ class KFServer():
              ExplainHandler, dict(models=self.registered_models)),
             (r"/api/v0.1/explain",
              ExplainHandler, dict(models=self.registered_models)),
+            (r"/api/v1.0/explain",
+             ExplainHandler, dict(models=self.registered_models)),
         ])
 
     def start(self, models: List[KFModel]):

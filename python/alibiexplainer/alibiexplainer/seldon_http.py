@@ -1,5 +1,5 @@
 from http import HTTPStatus
-import tornado
+import tornado.web
 import numpy as np
 from typing import Dict, List, Union
 import requests
@@ -52,6 +52,8 @@ def _get_request_ty(request: Dict) -> SeldonPayload: #pylint: disable=inconsiste
         return SeldonPayload.NDARRAY
     elif "tftensor" in data_def:
         return SeldonPayload.TFTENSOR
+    else:
+        raise Exception("Unknown Seldon payload type %s" % data_def)
 
 
 def create_request(arr: np.ndarray, ty: SeldonPayload) -> Dict:

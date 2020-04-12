@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import Callable, List, Dict
+from typing import Callable, List, Optional, Dict
 
 import kfserving
 import numpy as np
@@ -26,7 +26,7 @@ logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 
 class AnchorText(ExplainerWrapper):
 
-    def __init__(self, predict_fn: Callable, explainer: alibi.explainers.AnchorText,
+    def __init__(self, predict_fn: Callable, explainer: Optional[alibi.explainers.AnchorText],
                  spacy_language_model: str = 'en_core_web_md', **kwargs):
         self.predict_fn = predict_fn
         self.kwargs = kwargs
